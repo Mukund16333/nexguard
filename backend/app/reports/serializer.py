@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -12,7 +12,7 @@ from app.models.domain import Run, TargetConfig
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
-_jinja_env: Optional[Environment] = None
+_jinja_env: Environment | None = None
 
 
 def _get_jinja_env() -> Environment:
@@ -30,11 +30,11 @@ def _get_jinja_env() -> Environment:
     return _jinja_env
 
 
-def generate_json_report(run: Run, target: Optional[TargetConfig] = None) -> Dict[str, Any]:
+def generate_json_report(run: Run, target: TargetConfig | None = None) -> dict[str, Any]:
     """
     Generate structured JSON report payload containing run outcome, target info, and checks.
     """
-    report_dict: Dict[str, Any] = {
+    report_dict: dict[str, Any] = {
         "report_type": "NexGuard Validation Report",
         "generated_at": run.completed_at.isoformat() if run.completed_at else None,
         "run": run.model_dump(mode="json"),
@@ -50,7 +50,7 @@ def generate_json_report(run: Run, target: Optional[TargetConfig] = None) -> Dic
     return report_dict
 
 
-def generate_html_report(run: Run, target: Optional[TargetConfig] = None) -> str:
+def generate_html_report(run: Run, target: TargetConfig | None = None) -> str:
     """
     Render standalone HTML report using Jinja2 template.
     """
