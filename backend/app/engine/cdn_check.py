@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import time
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any
+
 import httpx
 
 from app.core.config import get_settings
@@ -29,10 +30,12 @@ CDN_HEADER_SIGNATURES = {
 }
 
 
-async def run_cdn_check(target: TargetConfig, response_headers: Optional[Dict[str, str]] = None) -> CheckResult:
+async def run_cdn_check(
+    target: TargetConfig, response_headers: dict[str, str] | None = None
+) -> CheckResult:
     """
     Observe CDN headers and edge cache behavior.
-    
+
     Checks for presence of edge CDN indicators. Note: Per architectural requirements,
     this check observes and reports, returning PASS when CDN headers are present,
     and WARNING if no CDN indicators are found (it never issues a FAIL on missing CDN).
@@ -41,8 +44,8 @@ async def run_cdn_check(target: TargetConfig, response_headers: Optional[Dict[st
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
 
-    headers_lower: Dict[str, str] = {}
-    
+    headers_lower: dict[str, str] = {}
+
     if response_headers is not None:
         headers_lower = {k.lower(): v for k, v in response_headers.items()}
     else:
@@ -76,8 +79,8 @@ async def run_cdn_check(target: TargetConfig, response_headers: Optional[Dict[st
 
     duration_ms = round((time.perf_counter() - t0) * 1000, 2)
 
-    found_cdn_headers: Dict[str, str] = {}
-    detected_providers: List[str] = []
+    found_cdn_headers: dict[str, str] = {}
+    detected_providers: list[str] = []
 
     for header_key, provider in CDN_HEADER_SIGNATURES.items():
         if header_key in headers_lower:
@@ -95,7 +98,7 @@ async def run_cdn_check(target: TargetConfig, response_headers: Optional[Dict[st
 
     cache_control = headers_lower.get("cache-control")
 
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "detected_providers": detected_providers,
         "found_cdn_headers": found_cdn_headers,
         "cache_control": cache_control,
@@ -104,7 +107,9 @@ async def run_cdn_check(target: TargetConfig, response_headers: Optional[Dict[st
     }
 
     if detected_providers or found_cdn_headers:
-        provider_desc = ", ".join(detected_providers) if detected_providers else "Active CDN/Edge Cache"
+        provider_desc = (
+            ", ".join(detected_providers) if detected_providers else "Active CDN/Edge Cache"
+        )
         return CheckResult(
             check_id=CHECK_ID,
             category=CATEGORY,

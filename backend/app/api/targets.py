@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.deps import get_current_owner, get_repo
 from app.core.safety import SafetyValidationError, validate_url
 from app.models.domain import TargetConfig
-from app.models.schemas import TargetCreate, TargetListResponse, TargetResponse, TargetUpdate
+from app.models.schemas import TargetCreate, TargetListResponse, TargetResponse
 from app.repositories.base import BaseRepository
 
 router = APIRouter(prefix="/targets", tags=["Targets"])
@@ -35,7 +35,7 @@ async def create_target(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
-        )
+        ) from exc
 
     # Infer expected host if not explicitly specified
     parsed = urlparse(validated_url)

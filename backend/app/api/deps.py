@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import Depends, Header
 
@@ -22,7 +22,7 @@ def get_repo() -> BaseRepository:
 
 
 def get_current_owner(
-    x_owner_id: Annotated[Optional[str], Header()] = None,
+    x_owner_id: Annotated[str | None, Header()] = None,
     settings: Settings = Depends(get_current_settings),
 ) -> str:
     """Extract owner ID from request header or fall back to default local user."""

@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
@@ -29,7 +28,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from app.core.config import get_settings
 from app.models.domain import (
     CheckResult,
-    CheckStatus,
     Environment,
     Run,
     RunStatus,
@@ -40,6 +38,7 @@ from app.repositories.base import BaseRepository
 
 class Base(DeclarativeBase):
     """SQLAlchemy declarative base."""
+
     pass
 
 
@@ -54,11 +53,13 @@ class TargetModel(Base):
     base_url: Mapped[str] = mapped_column(String(1024))
     environment: Mapped[str] = mapped_column(String(32), default="prod")
     expected_host: Mapped[str] = mapped_column(String(255))
-    expected_version_marker: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    origin_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    expected_version_marker: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    origin_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
 
 
 class RunModel(Base):
@@ -71,14 +72,14 @@ class RunModel(Base):
     owner_id: Mapped[str] = mapped_column(String(64), index=True)
     status: Mapped[str] = mapped_column(String(32), index=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    coverage: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    coverage: Mapped[float | None] = mapped_column(Float, nullable=True)
     ruleset_version: Mapped[str] = mapped_column(String(32))
     app_version: Mapped[str] = mapped_column(String(32))
-    check_results: Mapped[List[Dict[str, Any]]] = mapped_column(JSON, default=list)
-    report_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    duration_ms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    check_results: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    report_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    duration_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 def _target_model_to_domain(model: TargetModel) -> TargetConfig:
@@ -143,7 +144,7 @@ class SQLiteRepository(BaseRepository):
                 session.add(model)
         return target
 
-    async def get_target(self, target_id: UUID) -> Optional[TargetConfig]:
+    async def get_target(self, target_id: UUID) -> TargetConfig | None:
         async with self._session_factory() as session:
             stmt = select(TargetModel).where(TargetModel.target_id == str(target_id))
             result = await session.execute(stmt)
@@ -154,11 +155,11 @@ class SQLiteRepository(BaseRepository):
 
     async def list_targets(
         self,
-        owner_id: Optional[str] = None,
+        owner_id: str | None = None,
         include_deleted: bool = False,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[TargetConfig], int]:
+    ) -> tuple[list[TargetConfig], int]:
         async with self._session_factory() as session:
             stmt = select(TargetModel)
             count_stmt = select(func.count(TargetModel.target_id))
@@ -179,7 +180,7 @@ class SQLiteRepository(BaseRepository):
             models = results.scalars().all()
             return [_target_model_to_domain(m) for m in models], total
 
-    async def update_target(self, target_id: UUID, updates: Dict[str, Any]) -> Optional[TargetConfig]:
+    async def update_target(self, target_id: UUID, updates: dict[str, Any]) -> TargetConfig | None:
         async with self._session_factory() as session:
             async with session.begin():
                 stmt = select(TargetModel).where(TargetModel.target_id == str(target_id))
@@ -237,7 +238,7 @@ class SQLiteRepository(BaseRepository):
                 session.add(model)
         return run
 
-    async def get_run(self, run_id: UUID) -> Optional[Run]:
+    async def get_run(self, run_id: UUID) -> Run | None:
         async with self._session_factory() as session:
             stmt = select(RunModel).where(RunModel.run_id == str(run_id))
             result = await session.execute(stmt)
@@ -271,9 +272,11 @@ class SQLiteRepository(BaseRepository):
         target_id: UUID,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[Run], int]:
+    ) -> tuple[list[Run], int]:
         async with self._session_factory() as session:
-            count_stmt = select(func.count(RunModel.run_id)).where(RunModel.target_id == str(target_id))
+            count_stmt = select(func.count(RunModel.run_id)).where(
+                RunModel.target_id == str(target_id)
+            )
             total_res = await session.execute(count_stmt)
             total = total_res.scalar_one() or 0
 
@@ -290,10 +293,10 @@ class SQLiteRepository(BaseRepository):
 
     async def list_runs(
         self,
-        owner_id: Optional[str] = None,
+        owner_id: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[Run], int]:
+    ) -> tuple[list[Run], int]:
         async with self._session_factory() as session:
             count_stmt = select(func.count(RunModel.run_id))
             stmt = select(RunModel)
@@ -312,11 +315,11 @@ class SQLiteRepository(BaseRepository):
 
 
 # Global engine and session factory cache
-_engine: Optional[AsyncEngine] = None
-_session_factory: Optional[async_sessionmaker[AsyncSession]] = None
+_engine: AsyncEngine | None = None
+_session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
-def get_engine(database_url: Optional[str] = None) -> AsyncEngine:
+def get_engine(database_url: str | None = None) -> AsyncEngine:
     """Get or create singleton SQLAlchemy AsyncEngine."""
     global _engine
     if _engine is None:
@@ -329,7 +332,7 @@ def get_engine(database_url: Optional[str] = None) -> AsyncEngine:
     return _engine
 
 
-def get_session_factory(database_url: Optional[str] = None) -> async_sessionmaker[AsyncSession]:
+def get_session_factory(database_url: str | None = None) -> async_sessionmaker[AsyncSession]:
     """Get or create session factory."""
     global _session_factory
     if _session_factory is None:
@@ -342,7 +345,7 @@ def get_session_factory(database_url: Optional[str] = None) -> async_sessionmake
     return _session_factory
 
 
-async def init_db(engine: Optional[AsyncEngine] = None) -> None:
+async def init_db(engine: AsyncEngine | None = None) -> None:
     """Initialize SQLite database tables."""
     eng = engine or get_engine()
     async with eng.begin() as conn:

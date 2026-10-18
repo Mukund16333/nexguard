@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
-import fnmatch
 import socket
 import ssl
 import time
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any
 from urllib.parse import urlparse
 
 from cryptography import x509
@@ -34,13 +33,13 @@ def _matches_san(hostname: str, san_pattern: str) -> bool:
         # Wildcard only matches single leftmost label
         suffix = pattern[1:]  # e.g. .example.com
         if hostname.endswith(suffix):
-            sub = hostname[:-len(suffix)]
+            sub = hostname[: -len(suffix)]
             if "." not in sub:
                 return True
     return False
 
 
-def _verify_hostname_in_cert(hostname: str, sans: List[str], common_name: Optional[str]) -> bool:
+def _verify_hostname_in_cert(hostname: str, sans: list[str], common_name: str | None) -> bool:
     """Verify that hostname matches at least one SAN DNS entry or common name."""
     if sans:
         return any(_matches_san(hostname, san) for san in sans)
@@ -49,7 +48,7 @@ def _verify_hostname_in_cert(hostname: str, sans: List[str], common_name: Option
     return False
 
 
-def _fetch_tls_metadata(hostname: str, port: int, timeout: float) -> Dict[str, Any]:
+def _fetch_tls_metadata(hostname: str, port: int, timeout: float) -> dict[str, Any]:
     """Synchronous TLS handshake and certificate extraction."""
     context = ssl.create_default_context()
     # Connect with SNI
@@ -67,7 +66,7 @@ def _fetch_tls_metadata(hostname: str, port: int, timeout: float) -> Dict[str, A
     # Subject and Issuer
     common_names = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
     subject_cn = common_names[0].value if common_names else None
-    
+
     org_names = cert.issuer.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
     issuer_org = org_names[0].value if org_names else None
     issuer_cn_attrs = cert.issuer.get_attributes_for_oid(NameOID.COMMON_NAME)
@@ -79,11 +78,12 @@ def _fetch_tls_metadata(hostname: str, port: int, timeout: float) -> Dict[str, A
     not_valid_after = cert.not_valid_after_utc
 
     # SANs
-    sans: List[str] = []
+    sans: list[str] = []
     try:
         san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
         san_value = san_ext.value
-        sans = [str(name) for name in san_value.get_values_for_type(x509.DNSName)]
+        if isinstance(san_value, x509.SubjectAlternativeName):
+            sans = [str(name) for name in san_value.get_values_for_type(x509.DNSName)]
     except x509.ExtensionNotFound:
         pass
 
@@ -138,11 +138,11 @@ async def run_tls_check(target: TargetConfig) -> CheckResult:
     now = datetime.now(timezone.utc)
     not_valid_before: datetime = data["not_valid_before"]
     not_valid_after: datetime = data["not_valid_after"]
-    sans: List[str] = data["sans"]
-    subject_cn: Optional[str] = data["subject_cn"]
+    sans: list[str] = data["sans"]
+    subject_cn: str | None = data["subject_cn"]
     days_until_expiry = round((not_valid_after - now).total_seconds() / 86400, 1)
 
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "hostname": hostname,
         "port": port,
         "subject_cn": subject_cn,

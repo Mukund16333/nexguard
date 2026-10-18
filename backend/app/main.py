@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from app.api.health import router as health_router
 from app.api.router import api_v1_router
 from app.core.config import get_settings
-from app.core.safety import SSRFProtectionError, SafetyValidationError
+from app.core.safety import SafetyValidationError, SSRFProtectionError
 from app.repositories.sqlite_repo import init_db
 
 logging.basicConfig(level=logging.INFO)
@@ -62,7 +62,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(SafetyValidationError)
-    async def safety_exception_handler(request: Request, exc: SafetyValidationError) -> JSONResponse:
+    async def safety_exception_handler(
+        request: Request, exc: SafetyValidationError
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={

@@ -1,6 +1,7 @@
 """Unit tests for DNS check engine."""
 
 from unittest.mock import AsyncMock, patch
+
 import dns.resolver
 import pytest
 
@@ -28,6 +29,7 @@ class TestDnsCheck:
 
     async def test_successful_public_resolution(self, sample_target: TargetConfig):
         with patch("dns.asyncresolver.Resolver.resolve", new_callable=AsyncMock) as mock_resolve:
+
             def side_effect(qname, rdtype):
                 if rdtype == "A":
                     return MockAnswer([MockRdata(address="93.184.216.34")])

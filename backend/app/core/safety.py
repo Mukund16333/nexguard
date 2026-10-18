@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ipaddress
 import re
-from typing import Union
 from urllib.parse import urljoin, urlparse
 
 # Engine constants
@@ -35,17 +34,17 @@ BLOCKED_SUFFIXES = (
 
 # Explicit extra CIDR networks to block
 BLOCKED_NETWORKS = [
-    ipaddress.ip_network("100.64.0.0/10"),     # Carrier-Grade NAT
-    ipaddress.ip_network("192.0.0.0/24"),      # IETF Protocol Assignments
-    ipaddress.ip_network("192.0.2.0/24"),      # Documentation (TEST-NET-1)
-    ipaddress.ip_network("198.18.0.0/15"),     # Benchmarking
-    ipaddress.ip_network("198.51.100.0/24"),   # Documentation (TEST-NET-2)
-    ipaddress.ip_network("203.0.113.0/24"),    # Documentation (TEST-NET-3)
-    ipaddress.ip_network("192.88.99.0/24"),    # 6to4 Relay Anycast
-    ipaddress.ip_network("240.0.0.0/4"),       # Reserved for Future Use
-    ipaddress.ip_network("255.255.255.255/32"),# Limited Broadcast
-    ipaddress.ip_network("2001:db8::/32"),     # IPv6 Documentation
-    ipaddress.ip_network("100::/64"),          # IPv6 Discard prefix
+    ipaddress.ip_network("100.64.0.0/10"),  # Carrier-Grade NAT
+    ipaddress.ip_network("192.0.0.0/24"),  # IETF Protocol Assignments
+    ipaddress.ip_network("192.0.2.0/24"),  # Documentation (TEST-NET-1)
+    ipaddress.ip_network("198.18.0.0/15"),  # Benchmarking
+    ipaddress.ip_network("198.51.100.0/24"),  # Documentation (TEST-NET-2)
+    ipaddress.ip_network("203.0.113.0/24"),  # Documentation (TEST-NET-3)
+    ipaddress.ip_network("192.88.99.0/24"),  # 6to4 Relay Anycast
+    ipaddress.ip_network("240.0.0.0/4"),  # Reserved for Future Use
+    ipaddress.ip_network("255.255.255.255/32"),  # Limited Broadcast
+    ipaddress.ip_network("2001:db8::/32"),  # IPv6 Documentation
+    ipaddress.ip_network("100::/64"),  # IPv6 Discard prefix
 ]
 
 # Simple hostname regex (RFC 1123 compliant)
@@ -57,18 +56,20 @@ HOSTNAME_REGEX = re.compile(
 
 class SafetyValidationError(ValueError):
     """Raised when URL fails structural safety checks."""
+
     pass
 
 
 class SSRFProtectionError(SafetyValidationError):
     """Raised when an address violates SSRF protection boundaries."""
+
     pass
 
 
 def is_ip_literal(hostname: str) -> bool:
     """Check if the given hostname string is an IPv4 or IPv6 literal."""
     clean_host = hostname.strip("[]")
-    
+
     # Check standard IPv4 / IPv6
     try:
         ipaddress.ip_address(clean_host)
@@ -95,10 +96,10 @@ def is_ip_literal(hostname: str) -> bool:
     return False
 
 
-def is_ip_safe(ip: Union[str, ipaddress.IPv4Address, ipaddress.IPv6Address]) -> bool:
+def is_ip_safe(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
     """
     Check if an IP address is a safe, routable public IP.
-    
+
     Blocks:
     - Loopback (127.0.0.0/8, ::1)
     - Private networks (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7)
@@ -133,7 +134,7 @@ def is_ip_safe(ip: Union[str, ipaddress.IPv4Address, ipaddress.IPv6Address]) -> 
     return True
 
 
-def check_ip_safety(ip: Union[str, ipaddress.IPv4Address, ipaddress.IPv6Address]) -> bool:
+def check_ip_safety(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
     """
     Validate that an IP is safe. Raises SSRFProtectionError if unsafe.
     Returns True if valid.
@@ -148,7 +149,7 @@ def check_ip_safety(ip: Union[str, ipaddress.IPv4Address, ipaddress.IPv6Address]
 def validate_url(url: str) -> str:
     """
     Validate that a URL is safe for security testing.
-    
+
     Enforces:
     - HTTPS scheme only (never unencrypted HTTP)
     - Valid non-empty hostname

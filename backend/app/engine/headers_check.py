@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import time
-from typing import Any, Dict, List
+from datetime import datetime, timezone
+from typing import Any
+
 import httpx
 
 from app.core.config import get_settings
@@ -27,10 +28,12 @@ RECOMMENDED_HEADERS = {
 }
 
 
-async def run_headers_check(target: TargetConfig, response_headers: Dict[str, str] | None = None) -> CheckResult:
+async def run_headers_check(
+    target: TargetConfig, response_headers: dict[str, str] | None = None
+) -> CheckResult:
     """
     Inspect HTTP response headers for essential security protections.
-    
+
     Checks:
     - Strict-Transport-Security (Critical)
     - X-Content-Type-Options (Critical)
@@ -43,8 +46,8 @@ async def run_headers_check(target: TargetConfig, response_headers: Dict[str, st
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
 
-    headers_lower: Dict[str, str] = {}
-    
+    headers_lower: dict[str, str] = {}
+
     if response_headers is not None:
         headers_lower = {k.lower(): v for k, v in response_headers.items()}
     else:
@@ -78,9 +81,9 @@ async def run_headers_check(target: TargetConfig, response_headers: Dict[str, st
 
     duration_ms = round((time.perf_counter() - t0) * 1000, 2)
 
-    subchecks: Dict[str, Dict[str, Any]] = {}
-    missing_critical: List[str] = []
-    missing_recommended: List[str] = []
+    subchecks: dict[str, dict[str, Any]] = {}
+    missing_critical: list[str] = []
+    missing_recommended: list[str] = []
 
     # 1. Critical Headers
     for key, display_name in CRITICAL_HEADERS.items():
@@ -146,11 +149,15 @@ async def run_headers_check(target: TargetConfig, response_headers: Dict[str, st
                 "issue": None,
             }
 
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "subchecks": subchecks,
         "missing_critical": missing_critical,
         "missing_recommended": missing_recommended,
-        "observed_security_headers": {k: v for k, v in headers_lower.items() if k in CRITICAL_HEADERS or k in RECOMMENDED_HEADERS},
+        "observed_security_headers": {
+            k: v
+            for k, v in headers_lower.items()
+            if k in CRITICAL_HEADERS or k in RECOMMENDED_HEADERS
+        },
     }
 
     if missing_critical:

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
+
 import pytest
 
 from app.engine.tls_check import run_tls_check
@@ -84,7 +85,10 @@ class TestTlsCheck:
             assert "does not match" in result.summary
 
     async def test_handshake_error_fails(self, sample_target: TargetConfig):
-        with patch("app.engine.tls_check._fetch_tls_metadata", side_effect=ConnectionRefusedError("Connection refused")):
+        with patch(
+            "app.engine.tls_check._fetch_tls_metadata",
+            side_effect=ConnectionRefusedError("Connection refused"),
+        ):
             result = await run_tls_check(sample_target)
             assert result.status == CheckStatus.FAIL
             assert "handshake failed" in result.summary.lower()

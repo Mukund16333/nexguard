@@ -1,7 +1,6 @@
 """Unit tests for deterministic scoring engine."""
 
 from datetime import datetime, timezone
-import pytest
 
 from app.core.scoring import calculate_score
 from app.models.domain import CheckResult, CheckStatus

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import time
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
+
 import httpx
 
 from app.core.config import get_settings
@@ -18,7 +19,7 @@ WEIGHT = 0.15
 async def run_freshness_check(target: TargetConfig) -> CheckResult:
     """
     Verify deployment freshness by searching for an expected release/version marker.
-    
+
     If no marker is configured, returns SKIPPED (excluded from scoring denominator).
     If marker is configured, searches within bounded 10KB window of the response body.
     """
@@ -45,7 +46,7 @@ async def run_freshness_check(target: TargetConfig) -> CheckResult:
         )
 
     expected_marker = expected_marker.strip()
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "expected_marker": expected_marker,
         "max_bytes_searched": settings.MAX_FRESHNESS_BYTES,
         "marker_found": False,

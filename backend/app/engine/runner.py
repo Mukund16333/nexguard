@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
 import logging
 import time
-from typing import List
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.core.config import get_settings
@@ -50,7 +49,7 @@ async def _safe_run(coro, check_id: str, category: str, weight: float) -> CheckR
 async def run_all_checks(target: TargetConfig, run_id: UUID | None = None) -> Run:
     """
     Run all security and reliability checks against the target deployment.
-    
+
     Ensures that individual check failures or timeouts never stop other checks
     from completing. Produces a completed Run with deterministic score and coverage.
     """
@@ -68,7 +67,7 @@ async def run_all_checks(target: TargetConfig, run_id: UUID | None = None) -> Ru
         _safe_run(run_cdn_check(target), "cdn_behavior", "cdn", 0.10),
     ]
 
-    results: List[CheckResult] = await asyncio.gather(*tasks)
+    results: list[CheckResult] = await asyncio.gather(*tasks)
 
     duration_ms = round((time.perf_counter() - t0) * 1000, 2)
     completed_at = datetime.now(timezone.utc)

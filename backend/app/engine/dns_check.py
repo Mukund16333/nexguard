@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, timezone
 import time
-from typing import Any, Dict, List
+from datetime import datetime, timezone
+from typing import Any
 from urllib.parse import urlparse
 
 import dns.asyncresolver
@@ -32,7 +31,7 @@ def _extract_hostname(target: TargetConfig) -> str:
 async def run_dns_check(target: TargetConfig) -> CheckResult:
     """
     Perform DNS resolution for target host and verify IP safety.
-    
+
     Checks:
     - Resolution of A, AAAA, and CNAME records
     - Verification that all resolved IPs are safe public routable addresses
@@ -42,10 +41,10 @@ async def run_dns_check(target: TargetConfig) -> CheckResult:
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
 
-    records: Dict[str, List[str]] = {"A": [], "AAAA": [], "CNAME": []}
-    resolved_ips: List[str] = []
-    unsafe_ips: List[str] = []
-    errors: List[str] = []
+    records: dict[str, list[str]] = {"A": [], "AAAA": [], "CNAME": []}
+    resolved_ips: list[str] = []
+    unsafe_ips: list[str] = []
+    errors: list[str] = []
 
     resolver = dns.asyncresolver.Resolver()
     resolver.timeout = settings.DNS_TIMEOUT
@@ -87,7 +86,7 @@ async def run_dns_check(target: TargetConfig) -> CheckResult:
         if not is_ip_safe(ip):
             unsafe_ips.append(ip)
 
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "hostname": hostname,
         "records": records,
         "resolved_ips": resolved_ips,

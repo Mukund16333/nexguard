@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import time
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any
 from urllib.parse import urlparse
 
 import httpx
 
 from app.core.config import get_settings
-from app.core.safety import SSRFProtectionError, SafetyValidationError, validate_redirect
+from app.core.safety import SafetyValidationError, SSRFProtectionError, validate_redirect
 from app.models.domain import CheckResult, CheckStatus, TargetConfig
 
 CHECK_ID = "http_availability"
@@ -21,7 +21,7 @@ WEIGHT = 0.15
 async def run_http_check(target: TargetConfig) -> CheckResult:
     """
     Execute HTTP availability test with safe redirect tracking and timing.
-    
+
     Validates:
     - HTTP 200 status code
     - Safe redirect chain (no loops, no SSRF jumps, max 5 hops)
@@ -34,13 +34,13 @@ async def run_http_check(target: TargetConfig) -> CheckResult:
 
     expected_host = target.expected_host.strip().lower() if target.expected_host else ""
     current_url = str(target.base_url)
-    redirect_chain: List[Dict[str, Any]] = []
+    redirect_chain: list[dict[str, Any]] = []
     headers = {
         "User-Agent": f"NexGuard-Validator/{settings.APP_VERSION} (Security & Reliability Check)",
         "Accept": "*/*",
     }
 
-    evidence: Dict[str, Any] = {
+    evidence: dict[str, Any] = {
         "initial_url": current_url,
         "redirect_chain": redirect_chain,
         "final_url": None,
@@ -62,19 +62,21 @@ async def run_http_check(target: TargetConfig) -> CheckResult:
             headers=headers,
         ) as client:
             hops = 0
-            response: Optional[httpx.Response] = None
+            response: httpx.Response | None = None
 
             while hops <= settings.MAX_REDIRECTS:
                 req_start = time.perf_counter()
                 response = await client.get(current_url)
                 hop_duration = round((time.perf_counter() - req_start) * 1000, 2)
 
-                redirect_chain.append({
-                    "hop": hops,
-                    "url": current_url,
-                    "status_code": response.status_code,
-                    "duration_ms": hop_duration,
-                })
+                redirect_chain.append(
+                    {
+                        "hop": hops,
+                        "url": current_url,
+                        "status_code": response.status_code,
+                        "duration_ms": hop_duration,
+                    }
+                )
 
                 if response.is_redirect:
                     location = response.headers.get("location")
@@ -112,13 +114,15 @@ async def run_http_check(target: TargetConfig) -> CheckResult:
             final_host = urlparse(final_url).hostname or ""
             server_header = response.headers.get("server")
 
-            evidence.update({
-                "final_url": final_url,
-                "status_code": response.status_code,
-                "server_header": server_header,
-                "response_time_ms": total_duration_ms,
-                "content_length": len(response.content),
-            })
+            evidence.update(
+                {
+                    "final_url": final_url,
+                    "status_code": response.status_code,
+                    "server_header": server_header,
+                    "response_time_ms": total_duration_ms,
+                    "content_length": len(response.content),
+                }
+            )
 
             # Check status code
             if response.status_code != 200:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.domain import CheckResult
@@ -19,20 +19,20 @@ STATUS_CREDIT_MULTIPLIER = {
 }
 
 
-def calculate_score(results: List[CheckResult]) -> Tuple[float, float]:
+def calculate_score(results: list[CheckResult]) -> tuple[float, float]:
     """
     Calculate deterministic security/reliability score and test coverage.
-    
+
     Formula:
       - PASS = 1.0 * weight
       - WARNING = 0.5 * weight
       - FAIL = 0.0
       - ERROR = 0.0
       - SKIPPED = excluded from applicable denominator
-      
+
       Score = (sum(earned_weight) / sum(applicable_weights)) * 100
       Coverage = (sum(applicable_weights) / sum(total_configured_weights)) * 100
-      
+
     Returns:
       (score, coverage) rounded to 2 decimal places.
     """

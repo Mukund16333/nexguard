@@ -41,7 +41,9 @@ class TestHttpCheck:
     @respx.mock
     async def test_redirect_to_different_host_warning(self, sample_target: TargetConfig):
         respx.get("https://api.example.com").mock(
-            return_value=httpx.Response(302, headers={"Location": "https://other.example.com/login"})
+            return_value=httpx.Response(
+                302, headers={"Location": "https://other.example.com/login"}
+            )
         )
         respx.get("https://other.example.com/login").mock(
             return_value=httpx.Response(200, text="Other")

@@ -31,7 +31,7 @@ async def trigger_run(
 ) -> RunCreateResponse:
     """
     Trigger a security and reliability validation run.
-    
+
     Verifies that the target exists and runs all checks.
     """
     target = await repo.get_target(target_id)

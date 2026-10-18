@@ -25,9 +25,7 @@ class TestFreshnessCheck:
         sample_target.expected_version_marker = "sha-9f8e7d6"
         html_body = "<html><body>Release version: sha-9f8e7d6 active</body></html>"
 
-        respx.get("https://api.example.com").mock(
-            return_value=httpx.Response(200, text=html_body)
-        )
+        respx.get("https://api.example.com").mock(return_value=httpx.Response(200, text=html_body))
 
         result = await run_freshness_check(sample_target)
         assert result.status == CheckStatus.PASS
@@ -39,9 +37,7 @@ class TestFreshnessCheck:
         sample_target.expected_version_marker = "v2.0.0-final"
         html_body = "<html><body>Outdated release: v1.0.0</body></html>"
 
-        respx.get("https://api.example.com").mock(
-            return_value=httpx.Response(200, text=html_body)
-        )
+        respx.get("https://api.example.com").mock(return_value=httpx.Response(200, text=html_body))
 
         result = await run_freshness_check(sample_target)
         assert result.status == CheckStatus.FAIL

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from app.models.domain import Run, TargetConfig
@@ -18,23 +18,23 @@ class BaseRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_target(self, target_id: UUID) -> Optional[TargetConfig]:
+    async def get_target(self, target_id: UUID) -> TargetConfig | None:
         """Retrieve a target by its unique identifier."""
         raise NotImplementedError
 
     @abstractmethod
     async def list_targets(
         self,
-        owner_id: Optional[str] = None,
+        owner_id: str | None = None,
         include_deleted: bool = False,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[TargetConfig], int]:
+    ) -> tuple[list[TargetConfig], int]:
         """List targets with optional filtering and pagination. Returns (items, total_count)."""
         raise NotImplementedError
 
     @abstractmethod
-    async def update_target(self, target_id: UUID, updates: Dict[str, Any]) -> Optional[TargetConfig]:
+    async def update_target(self, target_id: UUID, updates: dict[str, Any]) -> TargetConfig | None:
         """Update mutable fields of a target."""
         raise NotImplementedError
 
@@ -49,7 +49,7 @@ class BaseRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_run(self, run_id: UUID) -> Optional[Run]:
+    async def get_run(self, run_id: UUID) -> Run | None:
         """Retrieve a run by its ID."""
         raise NotImplementedError
 
@@ -64,16 +64,16 @@ class BaseRepository(ABC):
         target_id: UUID,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[Run], int]:
+    ) -> tuple[list[Run], int]:
         """List runs executed for a specific target. Returns (items, total_count)."""
         raise NotImplementedError
 
     @abstractmethod
     async def list_runs(
         self,
-        owner_id: Optional[str] = None,
+        owner_id: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> Tuple[List[Run], int]:
+    ) -> tuple[list[Run], int]:
         """List runs across all targets. Returns (items, total_count)."""
         raise NotImplementedError

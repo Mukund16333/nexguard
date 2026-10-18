@@ -3,8 +3,8 @@
 import pytest
 
 from app.core.safety import (
-    SSRFProtectionError,
     SafetyValidationError,
+    SSRFProtectionError,
     check_ip_safety,
     is_ip_safe,
     validate_redirect,
@@ -62,18 +62,18 @@ class TestIpSafety:
     @pytest.mark.parametrize(
         "private_ip",
         [
-            "127.0.0.1",       # Loopback
-            "127.0.1.1",       # Loopback block
-            "::1",             # IPv6 Loopback
-            "10.0.0.5",        # RFC 1918 Private
-            "172.16.0.1",      # RFC 1918 Private
+            "127.0.0.1",  # Loopback
+            "127.0.1.1",  # Loopback block
+            "::1",  # IPv6 Loopback
+            "10.0.0.5",  # RFC 1918 Private
+            "172.16.0.1",  # RFC 1918 Private
             "172.31.255.255",  # RFC 1918 Private
-            "192.168.1.1",     # RFC 1918 Private
-            "169.254.169.254", # Link-local / Cloud metadata
-            "224.0.0.1",       # Multicast
-            "255.255.255.255", # Broadcast
-            "100.64.0.1",      # CGNAT
-            "0.0.0.0",         # Unspecified
+            "192.168.1.1",  # RFC 1918 Private
+            "169.254.169.254",  # Link-local / Cloud metadata
+            "224.0.0.1",  # Multicast
+            "255.255.255.255",  # Broadcast
+            "100.64.0.1",  # CGNAT
+            "0.0.0.0",  # Unspecified
         ],
     )
     def test_unsafe_ips_blocked(self, private_ip: str):
