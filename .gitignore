@@ -50,7 +50,7 @@ desktop.ini
 *.sqlite3
 
 # Reports (local generated)
-reports/
+/reports/
 *.report.json
 *.report.html
 
