@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 216 33% 97%;
+    --foreground: 218 54% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 218 54% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 54% 20%;
+    --primary: 194 71% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 95%;
+    --secondary-foreground: 210 61% 16%;
+    --muted: 212 19% 40%;
+    --muted-foreground: 212 19% 40%;
+    --accent: 173 70% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 4 77% 41%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 86%;
+    --input: 214 32% 86%;
+    --ring: 194 71% 31%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    border-color: #D9E2EC;
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #F6F8FB;
+    color: #172B4D;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  code, pre, kbd {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D9E2EC;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BCCCDC;
+}
