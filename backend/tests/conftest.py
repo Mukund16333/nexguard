@@ -46,6 +46,7 @@ async def async_client(in_memory_repo: SQLiteRepository) -> AsyncGenerator[Async
     """Provide AsyncClient wired with in-memory database repository override."""
     app = create_app()
     app.dependency_overrides[get_repo] = lambda: in_memory_repo
+    app.router.lifespan_context = None
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:

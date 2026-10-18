@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -324,6 +325,12 @@ def get_engine(database_url: str | None = None) -> AsyncEngine:
     global _engine
     if _engine is None:
         url = database_url or get_settings().DATABASE_URL
+        if "sqlite" in url and "///" in url:
+            db_path = url.split("///")[-1]
+            if not db_path.startswith(":memory:"):
+                db_dir = os.path.dirname(db_path)
+                if db_dir:
+                    os.makedirs(db_dir, exist_ok=True)
         _engine = create_async_engine(
             url,
             echo=False,
